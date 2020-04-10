@@ -34,13 +34,18 @@ var textureMerger = new TextureMerger({
 
 var atlas = textureMerger.mergedTexture;
 var ranges = textureMerger.ranges;
-// ranges:
-// {
-//		texture1: {startU: 0, endU: 0.25, startV: 1, endV: 0.6}
-// 		texture2: { startU: .... endU: .... startV: ..., endV: ... }
-//    texture3: { startU: .... endU: .... startV: ..., endV: ... }
-// }
-```
+console.log(ranges);
+```    
+
+Prints:
+```Javascript
+{
+	texture1: {startU: 0, endU: 0.25, startV: 1, endV: 0.6},
+	texture1: {startU: ..., endU: ..., startV: ..., endV: ...},
+	texture1: {startU: ..., endU: ..., startV: ..., endV: ...}
+}
+```  
+
 ### In your shader
 
 Pass textureMerger.mergedTexture to your shader as a Texture uniform. Pass the range of related texture as an attribute or uniform (attribute makes more sense as it's not dynamic):
