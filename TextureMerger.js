@@ -1,4 +1,45 @@
+var TextureMergerRectangle = function(x, y, width, height){
+  this.x = x;
+  this.y = y;
+  this.width = width;
+  this.height = height;
+  this.finalX = x + width;
+  this.finalY = y + height;
+}
+
+TextureMergerRectangle.prototype.set = function(x, y, x2, y2, width, height){
+  this.x = x;
+  this.y = y;
+  this.finalX = x2;
+  this.finalY = y2;
+  this.width = width,
+  this.height = height;
+  return this;
+}
+
+TextureMergerRectangle.prototype.fits = function(texture){
+  var tw = texture.image.width;
+  var th = texture.image.height;
+  if (tw <= this.width && th <= this.height){
+    return true;
+  }
+  return false;
+}
+
+TextureMergerRectangle.prototype.fitsPerfectly = function(texture){
+  var tw = texture.image.width;
+  var th = texture.image.height;
+  return (tw == this.width) && (th == this.height);
+}
+
+TextureMergerRectangle.prototype.overlaps = function(rect){
+  return this.x < rect.x + rect.width && this.x + this.width > rect.x && this.y < rect.y + rect.height && this.y + this.height > rect.y;
+}
+
 var TextureMerger = function(texturesObj){
+
+  this.MAX_TEXTURE_SIZE = 4096;
+
   if (!texturesObj){
     return;
   }
@@ -10,7 +51,7 @@ var TextureMerger = function(texturesObj){
       throw new Error("CompressedTextures are not supported.");
     }
 
-    if (typeof txt.image.toDataURL == UNDEFINED){
+    if (typeof txt.image.toDataURL == "undefined"){
       var tmpCanvas = document.createElement("canvas");
       tmpCanvas.width = txt.image.naturalWidth;
       tmpCanvas.height = txt.image.naturalHeight;
@@ -41,11 +82,11 @@ var TextureMerger = function(texturesObj){
   this.textureCache = new Object();
   // node
   //  |___ children: Array(2) of node
-  //  |___ rectangle: Rectangle
+  //  |___ rectangle: TextureMergerRectangle
   //  |___ textureName: String
   //  |___ upperNode: node
   this.node = new Object();
-  this.node.rectangle = new Rectangle(0, 0, this.maxWidth * this.textureCount,
+  this.node.rectangle = new TextureMergerRectangle(0, 0, this.maxWidth * this.textureCount,
                                               this.maxHeight * this.textureCount);
   this.textureOffsets = new Object();
   this.allNodes = [];
@@ -131,7 +172,7 @@ TextureMerger.prototype.insert = function(node, textureName, texturesObj){
         this.textureOffsets[textureName] = {x: curNode.rectangle.x, y: curNode.rectangle.y};
         var calculatedSize = this.calculateImageSize(texturesObj);
         var calculatedArea = calculatedSize.width + calculatedSize.height;
-        if (calculatedArea < minArea && calculatedSize.width <= MAX_TEXTURE_SIZE && calculatedSize.height <= MAX_TEXTURE_SIZE){
+        if (calculatedArea < minArea && calculatedSize.width <= this.MAX_TEXTURE_SIZE && calculatedSize.height <= this.MAX_TEXTURE_SIZE){
           var overlaps = false;
           for (var tName in this.textureOffsets){
             if (tName == textureName){
@@ -141,8 +182,8 @@ TextureMerger.prototype.insert = function(node, textureName, texturesObj){
             var ox = this.textureOffsets[tName].x;
             var oy = this.textureOffsets[tName].y;
             var oimg = texturesObj[tName].image;
-            var rect1 = new Rectangle(cr.x, cr.y, tw, th);
-            var rect2 = new Rectangle(ox, oy, oimg.width, oimg.height);
+            var rect1 = new TextureMergerRectangle(cr.x, cr.y, tw, th);
+            var rect2 = new TextureMergerRectangle(ox, oy, oimg.width, oimg.height);
             if (rect1.overlaps(rect2)){
               overlaps = true;
             }
@@ -169,8 +210,8 @@ TextureMerger.prototype.insert = function(node, textureName, texturesObj){
         var ry = minAreaNode.rectangle.y;
         var maxW = this.maxWidth * this.textureCount;
         var maxH = this.maxHeight * this.textureCount;
-        childNode1.rectangle = new Rectangle(rx+tw, ry, maxW - (rx+tw), maxH - ry);
-        childNode2.rectangle = new Rectangle(rx, ry+th, maxW - rx, maxH - (ry+th));
+        childNode1.rectangle = new TextureMergerRectangle(rx+tw, ry, maxW - (rx+tw), maxH - ry);
+        childNode2.rectangle = new TextureMergerRectangle(rx, ry+th, maxW - rx, maxH - (ry+th));
         this.allNodes.push(childNode1);
         this.allNodes.push(childNode2);
       }
@@ -191,8 +232,8 @@ TextureMerger.prototype.insert = function(node, textureName, texturesObj){
     childNode1.upperNode = node;
     childNode2.upperNode = node;
     node.children = [childNode1, childNode2];
-    childNode1.rectangle = new Rectangle(tw, 0, recW - tw, th);
-    childNode2.rectangle = new Rectangle(0, th, recW, recH - th);
+    childNode1.rectangle = new TextureMergerRectangle(tw, 0, recW - tw, th);
+    childNode2.rectangle = new TextureMergerRectangle(0, th, recW, recH - th);
     this.textureOffsets[textureName] = {x: node.rectangle.x, y: node.rectangle.y};
     var newNode = node.children[0];
     this.allNodes = [node, childNode1, childNode2];

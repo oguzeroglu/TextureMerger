@@ -1,0 +1,114 @@
+<html>
+
+  <head>
+      <title> TextureMerger example </title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+      <link type="text/css" rel="stylesheet" href="./main.css">
+      <script src="./three.min.js"></script>
+      <script src="../TextureMerger.js"></script>
+  </head>
+
+  <body>
+    <div id="container"></div>
+    <div id="info">
+      TextureMerger example
+    </div>
+
+    <script type="text/javascript">
+
+      var loadedTextures = [], spheres = [];
+
+      function onTextureLoaded(texture){
+        loadedTextures.push(texture);
+        if (loadedTextures.length == 4){
+          onAllTexturesLoaded();
+        }
+      }
+
+      function modifySphereUV(sphere, range){
+        var uvAttrAry = sphere.geometry.attributes.uv.array;
+        for (var i = 0; i < uvAttrAry.length; i += 2){
+          uvAttrAry[i] = (uvAttrAry[i] * (range.endU - range.startU) + range.startU);
+          uvAttrAry[i + 1] = (uvAttrAry[i + 1] * (range.startV - range.endV) + range.endV);
+        }
+
+        sphere.geometry.attributes.uv.needsUpdate = true;
+      }
+
+      function onAllTexturesLoaded(){
+        // merge textures
+        var textureMerger = new TextureMerger({
+          texture1: loadedTextures[0],
+          texture2: loadedTextures[1],
+          texture3: loadedTextures[2],
+          texture4: loadedTextures[3]
+        });
+
+        // create spheres
+        var material = new THREE.MeshBasicMaterial();
+        var sphere1 = new THREE.Mesh(new THREE.SphereBufferGeometry(10), material);
+        var sphere2 = new THREE.Mesh(new THREE.SphereBufferGeometry(10), material);
+        var sphere3 = new THREE.Mesh(new THREE.SphereBufferGeometry(10), material);
+        var sphere4 = new THREE.Mesh(new THREE.SphereBufferGeometry(10), material);
+
+        spheres.push(sphere1, sphere2, sphere3, sphere4);
+
+        // modify sphere UVs
+        modifySphereUV(sphere1, textureMerger.ranges.texture1);
+        modifySphereUV(sphere2, textureMerger.ranges.texture2);
+        modifySphereUV(sphere3, textureMerger.ranges.texture3);
+        modifySphereUV(sphere4, textureMerger.ranges.texture4);
+
+        // add spheres to the scene
+        sphere1.position.set(25, 0, 0);
+        sphere2.position.set(-25, 0, 0);
+        sphere3.position.set(0, 25, 0);
+        sphere4.position.set(0, -25, 0);
+        scene.add(sphere1);
+        scene.add(sphere2);
+        scene.add(sphere3);
+        scene.add(sphere4);
+
+        // map Texture Atlas to spheres
+        for (var i = 0; i < spheres.length; i ++){
+          spheres[i].material.map = textureMerger.mergedTexture;
+        }
+      }
+
+      // init scene
+      var scene = new THREE.Scene();
+
+      // init camera
+      var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 150);
+      camera.lookAt(scene.position);
+
+      scene.add(camera);
+
+      // init renderer
+      var renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      document.body.appendChild(renderer.domElement);
+
+      // load textures
+      var loader = new THREE.TextureLoader();
+      for (var i = 1; i <= 4; i ++){
+        loader.load("./texture" + i + ".png", onTextureLoaded);
+      }
+
+      // render loop
+      render();
+
+      function render() {
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+
+        for (var i = 0; i < spheres.length; i ++){
+          spheres[i].rotation.y += 0.01;
+        }
+      }
+    </script>
+  </body>
+</html>
