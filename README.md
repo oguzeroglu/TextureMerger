@@ -59,11 +59,11 @@ In your vertex shader:
 // of this function to your Fragment Shader.
 // uvCoordinates: [startU, startV, endU, endV]
 vec4 fixTextureBleeding(vec4 uvCoordinates){
-	// TEXTURE_SIZE is the size of each Atlas entry.
-	// For instance if you created a Texture Atlas from 128x128
-	// textures, TEXTURE_SIZE would be 128.
-	float offset = 0.5 / float(TEXTURE_SIZE);
-	return vec4(uvCoordinates[0] + offset, uvCoordinates[1] - offset, uvCoordinates[2] - offset, uvCoordinates[3] + offset);
+  // TEXTURE_SIZE is the size of each Atlas entry.
+  // For instance if you created a Texture Atlas from 128x128
+  // textures, TEXTURE_SIZE would be 128.
+  float offset = 0.5 / float(TEXTURE_SIZE);
+  return vec4(uvCoordinates[0] + offset, uvCoordinates[1] - offset, uvCoordinates[2] - offset, uvCoordinates[3] + offset);
 }
 ```
 
