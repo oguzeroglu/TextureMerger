@@ -54,15 +54,15 @@ Pass textureMerger.mergedTexture to your shader as a Texture uniform. Pass the r
 
 For **gl.POINTS**
 ```GLSL
-float coordX = ((gl_PointCoord.x) * (endU - startU)) + startU;
-float coordY = ((1.0 - gl_PointCoord.y) * (endV - startV)) + startV;
+float coordX = mix(startU, endU, gl_PointCoord.x);
+float coordY = mix(startV, endV, 1.0 - gl_PointCoord.y);
 vec4 textureColor = texture2D(texture, vec2(coordX, coordY));
 ```
 For the rest:
 ```GLSL
 // affine transformation on original UV of a vertex
-float coordX = (uv.x * (endU - startU) + startU);
-float coordY = (uv.y * (startV - endV) + endV);
+float coordX = mix(startU, endU, uv.x);
+float coordY = mix(startV, endV, uv.y);
 vec4 textureColor = texture2D(texture, vec2(coordX, coordY));
 ```
 
